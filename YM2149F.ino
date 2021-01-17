@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include <SD.h>
+#include "Streaming.h" // for operator <<
 
 template<int SIZE, typename TYPE = uint8_t>
 class RingBuffer
@@ -206,16 +207,19 @@ private:
         m_file = SD.open(fname);
         if (!m_file)
         {
-            Serial.print("failed open \""); Serial.print(fname); Serial.println("\"");
+            Serial << "failed open \"" << fname << "\"" << endl;
             return false;
         }            
         PSG_HEADER hdr;
-        if (m_file.read(&hdr, sizeof(hdr)) != sizeof(hdr) || hdr.id[0] != 'P' || hdr.id[1] != 'S' || hdr.id[2] != 'G')
+        if (m_file.read(&hdr, sizeof(hdr)) != sizeof(hdr) || 
+            hdr.id[0] != 'P' || 
+            hdr.id[1] != 'S' || 
+            hdr.id[2] != 'G')
         {
-            Serial.print("bad format \""); Serial.print(fname); Serial.println("\"");
+            Serial << "bad format \"" << fname <<"\"" << endl;
             return false;
         }
-        Serial.print("file \""); Serial.print(fname); Serial.println("\" opened");
+        Serial << "file \"" << fname << "\" opened" << endl;
         return true;
     }
 
@@ -227,18 +231,17 @@ public:
         digitalWrite(10, HIGH);
         if (!SD.begin(10))
         {
-            Serial.println("sd card initialization failed");
+            Serial << "sd card initialization failed" << endl;
             return false;
         }
         m_root = SD.open("/");
         if (!m_root)
         {
-            Serial.println("sd root read failed");
+            Serial << "sd root read failed" << endl;
             return false;
         }
         m_countFiles = _get_count(m_root);
-        Serial.print(m_countFiles);
-        Serial.println(" files found");
+        Serial << m_countFiles << " files found" << endl;
         return true;
     }    
     bool openRandomFile()
