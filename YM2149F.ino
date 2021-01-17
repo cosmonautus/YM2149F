@@ -210,7 +210,7 @@ private:
             return false;
         }            
         PSG_HEADER hdr;
-        if (m_file.read(&hdr, sizeof(hdr)) != sizeof(hdr) || hdr.id[0] != 'P' || hdr.id[1] != 'S' || hdr.id[1] != 'G')
+        if (m_file.read(&hdr, sizeof(hdr)) != sizeof(hdr) || hdr.id[0] != 'P' || hdr.id[1] != 'S' || hdr.id[2] != 'G')
         {
             Serial.print("bad format \""); Serial.print(fname); Serial.println("\"");
             return false;
