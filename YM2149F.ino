@@ -43,22 +43,25 @@ public:
     	return true;
     }
 };
-
 //
-// DA0 - PC0 (pin 14 <A0>)
-// DA1 - PC1 (pin 15 <A1>)
-// DA2 - PC2 (pin 16 <A2>)
-// DA3 - PC3 (pin 17 <A3>)
-// DA4 - PD4 (pin 4)
-// DA5 - PD5 (pin 5)
-// DA6 - PD6 (pin 6)
-// DA7 - PD7 (pin 7)
+// AY
 //
-// BC1  - PB0 (pin 8)
-// BDIR - PB1 (pin 9)
+// ay pin    arduino pin
+//-----------------------------
+//  DA0     - PC0 (pin 14 <A0>)
+//  DA1     - PC1 (pin 15 <A1>)
+//  DA2     - PC2 (pin 16 <A2>)
+//  DA3     - PC3 (pin 17 <A3>)
+//  DA4     - PD4 (pin 4)
+//  DA5     - PD5 (pin 5)
+//  DA6     - PD6 (pin 6)
+//  DA7     - PD7 (pin 7)
 //
-// RESET - PD2 (pin 2)
-// CLOCK - PD3 (pin 3) OC2B Fast PWM
+//  BC1     - PB0 (pin 8)
+//  BDIR    - PB1 (pin 9)
+//
+//  RESET   - PD2 (pin 2)
+//  CLOCK   - PD3 (pin 3) OC2B Fast PWM mode 7
 //
 class AyPlayer
 {	
@@ -66,17 +69,18 @@ class AyPlayer
     int m_count_delay = 0;    
 	void _clock()
 	{
-		TCCR2A = 0x23;
-		TCCR2B = 0x09;
+        // mode 7 fast pwm no prescale
+		TCCR2A = 0x23; // COM2B1 | WGM21 | WGM20;
+		TCCR2B = 0x09; // WGM22 | CS20
 		OCR2A = 8;
 		OCR2B = 3;
 	}
 	void _reset()
 	{
 		PORTD = PIND & 0b11111011; // PD2 - LOW
-		delay(100);
+		_delay_ms(100);
 		PORTD = PIND | 0b00000100; // PD2 - HIGH
-		delay(100);
+		_delay_ms(100);
 	}
 	void _cmd_nothing() // BC1 = 0, BDIR = 0
 	{
@@ -95,12 +99,12 @@ class AyPlayer
 		PORTC = (PINC & 0xF0) | (port & 0x0F);
 		PORTD = (PIND & 0x0F);
 		_cmd_fix_addr();
-		delayMicroseconds(1);
+		_delay_us(1);
 		_cmd_nothing();
 		PORTC = (PINC & 0xF0) | (data & 0x0F);
 		PORTD = (PIND & 0x0F) | (data & 0xF0);
 		_cmd_fix_data();
-		delayMicroseconds(1);
+		_delay_us(1);
 		_cmd_nothing();
 	}
 	void _silent()
@@ -158,6 +162,14 @@ public:
     }
 };
 
+//
+//  SD CARD
+//
+//   CS - pin 10
+//  SCK - pin 13 (SCK)
+// MOSI - pin 11 (MOSI)
+// MISO - pin 12 (MISO)
+// 
 class SdReader
 {
 private:
@@ -274,8 +286,6 @@ void setupTimer()
 AyPlayer ay;
 SdReader sd;
 
-bool is_work = false;
-
 void setup()
 {
     Serial.begin(9600);
@@ -287,7 +297,6 @@ void setup()
         {
             ay.read2buff(sd.file());
             setupTimer();
-            is_work = true;
         }
     }
 }
